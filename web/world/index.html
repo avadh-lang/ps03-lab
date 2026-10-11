@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LabDex · World</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;800;900&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+:root{--ink:#14120d;--paper:#fff8e6;--turm:#ffc21a;--chilli:#ff5436;--leaf:#b9f0cb;--violet:#ddd3ff;--sans:"Archivo",Arial,sans-serif;--mono:"JetBrains Mono",ui-monospace,Menlo,monospace}
+*{box-sizing:border-box}[hidden]{display:none!important}html,body{height:100%;margin:0;background:#0f1f5c;overflow:hidden;font:15px/1.35 var(--sans);color:var(--ink)}
+#game{position:fixed;inset:0}#game canvas{display:block}
+.top{position:fixed;top:0;left:0;right:0;display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 12px;background:var(--paper);border-bottom:4px solid var(--ink);z-index:5}
+.top b{font-weight:900;font-size:1.15rem;letter-spacing:-.02em;margin-right:4px}
+.pill{font:700 .68rem var(--mono);text-transform:uppercase;border:2px solid var(--ink);padding:1px 7px;background:#ddd}.pill.on{background:var(--leaf)}.pill.off{background:#ffd6cc}
+.sp{margin-left:auto;display:flex;gap:8px}
+a.btn,button{font:800 .8rem var(--sans);border:3px solid var(--ink);background:var(--turm);color:var(--ink);padding:3px 10px;min-height:32px;box-shadow:2px 2px 0 var(--ink);cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
+button:active,a.btn:active{transform:translate(2px,2px);box-shadow:none}
+button.red{background:var(--chilli)}button.green{background:var(--leaf)}button.mini{min-height:24px;font-size:.7rem;padding:0 8px;border-width:2px}
+.card{position:fixed;background:var(--paper);border:4px solid var(--ink);box-shadow:6px 6px 0 var(--ink);z-index:4}
+.card h2{margin:0;padding:4px 10px;background:var(--ink);color:var(--turm);font:700 .68rem var(--mono);letter-spacing:.08em;text-transform:uppercase}
+#side{top:60px;right:12px;width:290px;max-height:calc(100vh - 230px);overflow:auto}
+#side .body{padding:8px;display:flex;flex-direction:column;gap:8px}
+.run{border:3px solid var(--ink);background:#fff;padding:6px;display:grid;gap:4px;font-size:.8rem}.run span{font:500 .68rem var(--mono)}
+.bar{height:10px;border:2px solid var(--ink);background:#fff}.bar i{display:block;height:100%;background:#8b6cf0;transition:width .3s}
+.empty{border:3px dashed var(--ink);padding:8px;font:700 .72rem var(--mono);background:#ffe9a8}
+.appr{border:3px solid var(--ink);background:var(--turm);padding:8px;display:grid;gap:6px;font-size:.85rem}.appr span{font:500 .7rem var(--mono)}.appr div{display:flex;gap:6px}
+#feedbox{left:12px;bottom:12px;width:min(520px,calc(100vw - 24px))}
+#feed{padding:6px 10px;font:500 .72rem/1.5 var(--mono);background:#14120d;color:#fff8e6;min-height:110px;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden}
+.ln.hit{color:#6ef0a0}.ln.err{color:#ff8a76}.ln.sys{color:#ffc21a}.ln.dim{color:#a8bbb4}
+#ask{right:12px;bottom:12px;width:290px;padding:8px;display:grid;gap:6px}
+#ask textarea{font:500 .8rem var(--sans);border:3px solid var(--ink);padding:5px;resize:none;height:62px;width:100%}
+#loading{position:fixed;inset:0;background:#0f1f5c;display:grid;place-content:center;gap:12px;z-index:9;text-align:center;color:var(--paper);transition:opacity .4s}
+#loading.gone{opacity:0;pointer-events:none}#loading h1{font:900 3rem var(--sans);color:var(--turm);margin:0;letter-spacing:-.03em}
+.lb{width:min(420px,80vw);height:22px;border:4px solid var(--paper);background:var(--ink)}.lb i{display:block;height:100%;width:0;background:#58d858}
+#loadlabel{font:700 .72rem var(--mono);text-transform:uppercase}
+.help{position:fixed;left:12px;top:60px;z-index:4;font:700 .68rem var(--mono);background:var(--paper);border:3px solid var(--ink);padding:4px 8px}
+@media(max-width:900px){#side{width:220px;top:96px}#ask{display:none}.help{display:none}}
+@media(max-width:700px){.appr div{flex-wrap:wrap}.appr{font-size:.8rem}#feed{min-height:0;max-height:104px;font-size:.62rem;line-height:1.35}#side{width:236px;max-height:200px;right:8px}#feedbox{bottom:8px;left:8px;width:calc(100vw - 16px)}}
+.inbattle #side,.inbattle #feedbox,.inbattle #ask,.inbattle .help{display:none}
+.inbattle #backBtn{top:64px}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style></head>
+<body>
+<div id="game"></div>
+<div id="loading"><h1>LabDex</h1><div class="lb"><i id="loadbar"></i></div><div id="loadlabel">Waking the lab…</div></div>
+<div class="top">
+  <b>LabDex</b><span class="pill" id="conn">connecting</span><span class="pill" id="llm">rule-based</span>
+  <div class="sp"><button id="mute">🔊 Sound on</button><a class="btn" id="notebook" href="/">Lab notebook</a></div>
+</div>
+<button id="backBtn" hidden style="position:fixed;top:62px;left:12px;z-index:6">◀ Back to campus</button>
+<div class="help">WASD / arrows to walk · creatures are the lab's agents</div>
+<div class="card" id="side"><h2>Training field</h2><div class="body"><div id="appr"></div><div id="runs"></div></div></div>
+<div class="card" id="feedbox"><h2>Radio</h2><div id="feed"></div></div>
+<form class="card" id="ask"><h2 style="margin:-8px -8px 0">Ask the lab</h2>
+  <textarea id="askText" aria-label="Research request">Reproduce grokking, then investigate weight decay and training-set size</textarea>
+  <button type="submit">Run ▶</button></form>
+<script src="/world-assets/world.js"></script>
+</body></html>

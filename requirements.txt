@@ -1,0 +1,8 @@
+torch
+numpy
+fastapi
+uvicorn[standard]
+pydantic
+qrcode
+pytest
+httpx

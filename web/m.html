@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LabDex · Phone Control</title>
+<style>
+:root{--turmeric:#ffc21a;--leaf:#b9f0cb;--chilli:#ff5436;--wall:#d8eee8;--steel:#c9d1d3}
+*{box-sizing:border-box}body{margin:0;background:var(--wall);font:17px/1.4 "Archivo",Arial,sans-serif;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+h1{font-size:1.3rem;font-weight:900;margin:0 0 4px}.sub{font:700 .75rem ui-monospace,Menlo,monospace;text-transform:uppercase;margin-bottom:14px}
+.card{background:#fff;border:3px solid #000;box-shadow:4px 4px 0 #000;padding:14px;margin-bottom:14px}
+.card.ask{background:var(--turmeric)}
+button{font:inherit;font-weight:900;border:3px solid #000;box-shadow:3px 3px 0 #000;min-height:52px;padding:6px 14px;width:100%;margin-top:8px;background:#fff}
+button:active{transform:translate(3px,3px);box-shadow:none}button.y{background:var(--leaf)}button.n{background:var(--chilli)}
+.mono{font:600 .8rem ui-monospace,Menlo,monospace}.empty{border:3px dashed #000;padding:14px;font-weight:700}
+.dot{display:inline-block;width:10px;height:10px;border:2px solid #000;background:var(--steel);margin-right:6px}.dot.on{background:#169b48}
+</style></head><body>
+<h1>Lab control</h1><div class="sub"><span class="dot" id="dot"></span><span id="st">connecting</span></div>
+<div id="err" class="card" hidden role="alert" style="background:#ffd6cc"></div><div id="appr"></div><h1 style="font-size:1rem;margin-top:18px">Running now</h1><div id="runs"></div>
+<script>
+const TOKEN=new URLSearchParams(location.search).get("token");
+const H={"content-type":"application/json","x-via":"phone",...(TOKEN?{authorization:"Bearer "+TOKEN}:{})};
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+async function load(){
+  try{
+    const r=await fetch("/api/state",{headers:H});if(!r.ok)throw new Error(r.status===401?"token required":r.statusText);
+    const s=await r.json();$("#dot").className="dot on";$("#st").textContent="live · "+new Date().toLocaleTimeString();
+    const p=s.approvals.filter(a=>a.status==="pending");
+    $("#appr").innerHTML=p.length?p.map(a=>`<div class="card ask"><b>A wild ${esc(a.payload.name)} wants to join. Catch it?</b><p class="mono">needs: ${esc(a.payload.capability)}</p><p>${esc(a.payload.reason)}</p>
+      <button class="y" data-a="${a.id}" data-y="1">Catch it (approve)</button><button class="n" data-a="${a.id}" data-y="0">Let it go (reject)</button></div>`).join(""):`<div class="empty">Nothing waiting for you.</div>`;
+    const act=s.runs.filter(r=>["running","waiting"].includes(r.status));
+    $("#runs").innerHTML=act.length?act.map(r=>`<div class="card"><b>#${r.id} ${esc(r.label)}</b><p class="mono">${esc(r.agent_id||"")} · ${esc((r.effective||r.requested||{}).device||"")} · ${r.status==="running"?"running":"queued"}</p>${r.status==="running"?`<button class="n" data-k="${r.id}">Kill run</button>`:`<p class="mono">waiting for a free slot (can't be killed until it starts)</p>`}</div>`).join(""):`<div class="empty">No active runs.</div>`;
+  }catch(e){$("#dot").className="dot";$("#st").textContent=e.message}
+}
+const $=s=>document.querySelector(s);
+function showErr(m){const e=$("#err");e.textContent=m;e.hidden=!m;if(m)setTimeout(()=>{e.hidden=true},6000)}
+document.body.addEventListener("click",async e=>{const b=e.target.closest("button");if(!b)return;b.disabled=true;
+  try{
+    let r;
+    if(b.dataset.a)r=await fetch(`/api/approvals/${b.dataset.a}/decide`,{method:"POST",headers:H,body:JSON.stringify({approve:b.dataset.y==="1"})});
+    if(b.dataset.k)r=await fetch(`/api/runs/${b.dataset.k}/kill`,{method:"POST",headers:H});
+    if(r&&!r.ok){let m=r.statusText;try{m=(await r.json()).detail||m}catch(_){}showErr(`${r.status}: ${m}`)}
+  }catch(err){showErr("network error: "+err.message)}
+  load();});
+load();setInterval(load,2500);
+</script></body></html>

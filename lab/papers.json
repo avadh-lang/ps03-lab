@@ -1,0 +1,24 @@
+{
+  "nanda": {
+    "title": "Progress measures for grokking via mechanistic interpretability",
+    "authors": "Nanda, Chan, Lieberum, Smith, Steinhardt",
+    "year": 2023,
+    "setup": {"paper": "nanda", "p": 113, "train_frac": 0.3, "weight_decay": 1.0, "lr": 0.001,
+              "n_layers": 1, "d_model": 128, "n_heads": 4, "d_mlp": 512, "batch_size": 0, "epochs": 40000},
+    "paper_device": "cuda",
+    "claim": {"grok_epoch": 25000, "final_test_acc": 1.0, "verified": false,
+              "note": "Value copied from the team's research notes. UNVERIFIED: check against the paper and edit lab/papers.json."},
+    "reports": {"seed": null, "torch_version": null, "hardware": "GPU"}
+  },
+  "power": {
+    "title": "Grokking: Generalization Beyond Overfitting on Small Algorithmic Datasets",
+    "authors": "Power, Burda, Edwards, Babuschkin, Misra",
+    "year": 2022,
+    "setup": {"paper": "power", "p": 97, "train_frac": 0.5, "weight_decay": 1.0, "lr": 0.001,
+              "n_layers": 2, "d_model": 128, "n_heads": 4, "d_mlp": 512, "batch_size": 512, "epochs": 100000},
+    "paper_device": "cuda",
+    "claim": {"grok_epoch": null, "final_test_acc": 1.0, "verified": false,
+              "note": "Qualitative claim only: validation accuracy rises long after training accuracy saturates."},
+    "reports": {"seed": null, "torch_version": null, "hardware": "GPU"}
+  }
+}

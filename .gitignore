@@ -1,0 +1,8 @@
+.venv/
+data/
+__pycache__/
+*.pyc
+.pytest_cache/
+pip.log
+world/node_modules/
+.playwright-cli/

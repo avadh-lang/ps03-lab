@@ -1,0 +1,604 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LabDex · Agent Research Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+:root{
+  --ink:#000; --paper:#fff; --wall:#d8eee8; --wall-line:#bfe0d7;
+  --turmeric:#ffc21a; --turmeric-soft:#ffe9a8; --chilli:#ff5436; --chilli-soft:#ffd6cc;
+  --leaf:#169b48; --leaf-soft:#b9f0cb; --steel:#c9d1d3; --violet:#8b6cf0; --violet-soft:#ddd3ff;
+  --hard:4px 4px 0 0 #000; --hard-sm:2px 2px 0 0 #000;
+  --sans:"Archivo","Helvetica Neue",Arial,sans-serif; --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{margin:0;background-color:var(--wall);background-image:linear-gradient(var(--wall-line) 1.5px,transparent 1.5px),linear-gradient(90deg,var(--wall-line) 1.5px,transparent 1.5px);background-size:44px 44px;color:var(--ink);font:15px/1.45 var(--sans)}
+h1,h2,h3,p{margin:0}
+.display{font-stretch:125%;font-variation-settings:"wdth" 125;font-weight:900;letter-spacing:-.02em;line-height:1}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid #000;outline-offset:2px;box-shadow:0 0 0 5px var(--turmeric)}
+.top{position:sticky;top:0;z-index:30;background:var(--paper);border-bottom:3px solid #000;display:flex;gap:14px;align-items:center;padding:10px 16px;flex-wrap:wrap}
+.top b{font-stretch:125%;font-weight:900;font-size:1.15rem}
+.pill{font:700 .72rem var(--mono);letter-spacing:.05em;text-transform:uppercase;border:2px solid #000;padding:2px 8px;background:var(--steel)}
+.pill.on{background:var(--leaf-soft)} .pill.off{background:var(--chilli-soft)} .pill.warn{background:var(--turmeric-soft)}
+.top .sp{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px;padding:4px 12px;font-weight:800;font-stretch:108%;background:var(--turmeric);border:3px solid #000;box-shadow:var(--hard-sm);cursor:pointer;transition:transform .08s,box-shadow .08s}
+.btn:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 #000}.btn:active{transform:translate(2px,2px);box-shadow:none}
+.btn.alt{background:var(--paper)}.btn.red{background:var(--chilli)}.btn.green{background:var(--leaf-soft)}.btn.sm{min-height:28px;padding:1px 8px;font-size:.8rem;border-width:2px}
+.btn:disabled{background:var(--steel);cursor:not-allowed;transform:none;box-shadow:none}
+main{max-width:1500px;margin:0 auto;padding:16px;display:grid;gap:16px;grid-template-columns:repeat(12,minmax(0,1fr))}
+.panel{background:var(--paper);border:3px solid #000;box-shadow:var(--hard);min-width:0;display:flex;flex-direction:column}
+.ph{display:flex;align-items:center;gap:8px;padding:6px 12px;border-bottom:3px solid #000;background:#000;color:#fff;font:700 .78rem var(--mono);letter-spacing:.06em;text-transform:uppercase;flex-wrap:wrap}
+.ph .r{margin-left:auto;color:var(--turmeric)}
+.pb{padding:12px;min-width:0}
+.c12{grid-column:span 12}.c8{grid-column:span 8}.c7{grid-column:span 7}.c6{grid-column:span 6}.c5{grid-column:span 5}.c4{grid-column:span 4}
+@media(max-width:1100px){.c8,.c7,.c6,.c5,.c4{grid-column:span 12}}
+label.f{display:flex;flex-direction:column;gap:3px;font:700 .72rem var(--mono);text-transform:uppercase;letter-spacing:.05em}
+.in{border:3px solid #000;background:#fff;padding:6px 8px;font:500 .9rem var(--sans);width:100%}
+textarea.in{resize:vertical;min-height:62px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.row>*{min-width:0}
+.hint{font-size:.8rem;color:#333}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.84rem}
+th,td{border-bottom:2px solid #000;padding:5px 6px;text-align:left;vertical-align:middle;white-space:nowrap}
+th{font:700 .66rem var(--mono);letter-spacing:.07em;text-transform:uppercase;background:var(--turmeric-soft)}
+td.n{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+tr.sel td{background:var(--turmeric-soft)}
+.st{font:700 .66rem var(--mono);text-transform:uppercase;border:2px solid #000;padding:1px 6px;background:var(--steel)}
+.st.running{background:var(--turmeric)}.st.success{background:var(--leaf-soft)}.st.failed,.st.killed,.st.timeout{background:var(--chilli-soft)}.st.insufficient{background:var(--violet-soft)}
+.feed{height:420px;overflow:auto;background:#0b0b0b;color:#e6f4ee;font:500 .78rem/1.5 var(--mono);padding:10px;display:flex;flex-direction:column;gap:3px}
+.feed .e{display:grid;grid-template-columns:62px minmax(0,1fr);gap:8px}
+.feed .t{color:#7d8f89}.feed .hit{color:#6ef0a0}.feed .err{color:#ff8a76}.feed .sys{color:var(--turmeric)}.feed .why{color:#b9a6ff}.feed .dim{color:#a8bbb4}
+.feed details summary{cursor:pointer;list-style:none}.feed details summary::-webkit-details-marker{display:none}
+.ucb{margin:4px 0 4px 0;border-collapse:collapse;font-size:.72rem}.ucb td,.ucb th{border:1px solid #444;padding:2px 6px;color:#e6f4ee;background:none;font-weight:500}
+.ucb tr.ch td{background:#1d3b2c;color:#6ef0a0}
+svg text{font-family:var(--mono)}
+.legend{display:flex;gap:8px;flex-wrap:wrap;padding:0 12px 10px}
+.lg{display:flex;align-items:center;gap:6px;border:2px solid #000;padding:2px 8px;font:700 .72rem var(--mono);cursor:pointer;background:#fff}
+.lg i{width:14px;height:6px;display:inline-block;border:1px solid #000}
+.lg.off{opacity:.35}
+.cause{display:grid;grid-template-columns:90px minmax(0,1fr);gap:8px;padding:6px 0;border-bottom:2px dashed #000;font-size:.85rem}
+.cause .k{font:700 .66rem var(--mono);text-transform:uppercase}
+.k.config{color:var(--chilli)}.k.inferred{color:#a06a00}.k.environment{color:#444}
+.big{font-stretch:125%;font-weight:900;font-size:1.8rem;line-height:1}
+.cmpgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:10px}
+.cmpgrid>div{border:3px solid #000;padding:8px;background:var(--turmeric-soft)}
+.cmpgrid .l{font:700 .66rem var(--mono);text-transform:uppercase}
+.warnbox{border:3px dashed #000;background:var(--turmeric-soft);padding:6px 10px;font:700 .75rem var(--mono);margin-bottom:8px}
+.appr{border:3px solid #000;background:var(--turmeric);padding:10px;display:flex;flex-direction:column;gap:6px;margin-bottom:8px;animation:pop .25s}
+@keyframes pop{from{transform:scale(.96);opacity:0}to{transform:none;opacity:1}}
+.agent-card{border:3px solid #000;padding:8px;background:var(--leaf-soft)}
+pre.md{white-space:pre-wrap;font:500 .8rem/1.5 var(--mono);margin:0;max-height:300px;overflow:auto}
+.empty{border:3px dashed #000;padding:14px;background:var(--turmeric-soft);font:700 .8rem var(--mono)}
+.mini{font:500 .72rem var(--mono)}
+dialog{border:4px solid #000;box-shadow:8px 8px 0 #000;padding:16px;max-width:92vw}
+dialog::backdrop{background:rgba(0,0,0,.4)}
+
+/* ---------------- creatures (LabDex) ---------------- */
+.party-wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,340px);gap:16px;align-items:start}
+@media(max-width:900px){.party-wrap{grid-template-columns:minmax(0,1fr)}}
+.party{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:12px}
+.mon{border:3px solid #000;box-shadow:var(--hard-sm);background:var(--paper);padding:8px;display:grid;grid-template-columns:64px minmax(0,1fr);gap:8px;cursor:pointer;position:relative;transition:transform .08s,box-shadow .08s;animation:pop .3s}
+.mon:hover{transform:translate(-1px,-1px);box-shadow:var(--hard)}
+.mon.sel{outline:3px dashed #000;outline-offset:3px}
+.mon .sprite{width:64px;height:64px;background:var(--tint,#fff);border:3px solid #000}
+.mon .nm{font-weight:900;font-size:.85rem;line-height:1.1;overflow-wrap:anywhere}
+.mon .lv{font:700 .66rem var(--mono);background:#000;color:#fff;padding:0 4px;margin-left:4px;white-space:nowrap}
+.mon .types{display:flex;gap:3px;flex-wrap:wrap;margin:3px 0}
+.tb{font:800 .58rem var(--mono);letter-spacing:.05em;text-transform:uppercase;padding:0 5px;border:2px solid #000;background:var(--tc,#ddd)}
+.hp{height:10px;border:2px solid #000;background:#fff;position:relative;margin-top:2px}
+.hp i{display:block;height:100%;background:var(--leaf)}
+.hp i.mid{background:var(--turmeric)}.hp i.low{background:var(--chilli)}
+.hp u{position:absolute;top:-3px;bottom:-3px;width:2px;background:#000;left:30%}
+.mon .mini{font-size:.62rem;margin-top:2px}
+.mon .tag{position:absolute;top:-9px;right:6px;font:800 .6rem var(--mono);border:2px solid #000;background:var(--turmeric);padding:0 5px}
+.mon .tag.evo{background:var(--violet-soft)}.mon .tag.fused{background:var(--chilli-soft)}
+.mon.fainted{filter:grayscale(1);opacity:.7}
+.mon.fainted .nm{text-decoration:line-through}
+.card-top{display:flex;gap:10px;align-items:center;margin-bottom:6px}
+.card-top .sprite{width:84px;height:84px;background:var(--tint,#fff);border:3px solid #000;flex:none}
+.species{font:700 .66rem var(--mono);text-transform:uppercase;letter-spacing:.06em}
+.ph2{display:flex;gap:10px;align-items:baseline;justify-content:space-between;border-top:3px solid #000;padding-top:10px;margin-bottom:8px}
+.graphbox{border:3px solid #000;background:#fff;overflow-x:auto;padding:8px;box-shadow:var(--hard-sm)}
+#taskgraph{display:block;height:auto}
+#taskgraph .nd rect{stroke:#000;stroke-width:3}
+#taskgraph .nd.running rect{animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{fill:#fff0b0}}
+#taskgraph text{font-family:var(--sans)}
+#taskgraph .sub{font:500 9px var(--mono)}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="top">
+  <b id="product">LabDex</b>
+  <span class="pill" id="conn">connecting</span>
+  <span class="pill" id="llm">rule-based</span>
+  <span class="pill" id="hb" title="last server heartbeat">hb –</span>
+  <div class="sp">
+    <button class="btn alt sm" id="phoneBtn">📱 Phone control</button>
+    <button class="btn red sm" id="resetBtn">Reset lab</button>
+  </div>
+</div>
+
+<main>
+  <!-- request -->
+  <section class="panel c7">
+    <div class="ph">Ask the lab</div>
+    <div class="pb">
+      <label class="f">Research request
+        <textarea class="in" id="reqText">Reproduce grokking (Nanda 2023), then investigate what happens with different weight decay and training-set sizes.</textarea>
+      </label>
+      <div class="row" style="margin-top:10px">
+        <label class="f" style="flex:1 1 170px">Scale
+          <select class="in" id="preset">
+            <option value="fast">Fast (p=59, 50% data, laptop demo)</option>
+            <option value="paper">Paper setup (p=113, 30% data)</option>
+          </select>
+        </label>
+        <label class="f" style="flex:0 1 110px">Epoch cap<input class="in" id="epochs" type="number" min="100" step="100" placeholder="auto"></label>
+        <label class="f" style="flex:0 1 90px">Seed<input class="in" id="seed" type="number" placeholder="42"></label>
+        <label class="f" style="flex:1 1 170px">Pin runner (override)
+          <select class="in" id="runner"><option value="">UCB1 decides</option></select>
+        </label>
+        <button class="btn" id="go">Run ▶</button>
+      </div>
+      <p class="hint" style="margin-top:8px">Submit the same request twice to see memory skip the work. Pin <b>CodeRunner-Literal</b> to trigger a real CUDA error and watch the fix be learned, then recalled.</p>
+    </div>
+  </section>
+
+  <section class="panel c5">
+    <div class="ph">Needs your decision <span class="r" id="apprCount"></span></div>
+    <div class="pb" id="approvals"><div class="empty">Nothing waiting. When the lab needs a skill nobody has, it asks here (and on your phone).</div></div>
+  </section>
+
+  <!-- curves + runs -->
+  <section class="panel c12">
+    <div class="ph">Live curves <span class="r" id="chartNote"></span></div>
+    <div class="pb" style="padding-bottom:0"><svg id="chart" viewBox="0 0 800 300" style="width:100%;height:auto;max-height:340px" role="img" aria-label="Test accuracy per run"></svg></div>
+    <div class="legend" id="legend"></div>
+    <div id="oracle" style="padding:0 16px 14px;display:grid;gap:8px"></div>
+  </section>
+
+  <section class="panel c12">
+    <div class="ph">Your party <span class="r" id="agCount"></span></div>
+    <div class="pb party-wrap">
+      <div class="party" id="party"></div>
+      <div id="agentDetail"><p class="hint">Click a creature for its card.</p></div>
+    </div>
+    <div class="pb" id="graphWrap" hidden style="padding-top:0">
+      <div class="ph2"><b id="graphTitle">Task graph</b><span class="mini" id="graphNote"></span></div>
+      <div class="graphbox"><svg id="taskgraph" role="img" aria-label="Task graph for the selected agent"></svg></div>
+      <p class="hint" style="margin-top:6px">Left to right: lineage → agent → modules (skills) → tasks → steps. Every node is a real database row; running work shows up before it is scored.</p>
+    </div>
+  </section>
+
+  <section class="panel c12">
+    <div class="ph">Runs</div>
+    <div class="tbl"><table><thead><tr><th>#</th><th>label</th><th>status</th><th>agent</th><th>device</th><th class="n">epoch</th><th class="n">test acc</th><th>grok</th><th class="n">wall</th><th>source</th><th>rate</th><th></th></tr></thead>
+    <tbody id="runs"></tbody></table></div>
+  </section>
+
+  <!-- feed + compare -->
+  <section class="panel c7">
+    <div class="ph">Activity and decisions <span class="r">every choice shows why</span></div>
+    <div class="feed" id="feed" aria-live="polite"></div>
+  </section>
+
+  <section class="panel c5">
+    <div class="ph">ReproComparator <span class="r" id="cmpTag"></span></div>
+    <div class="pb" id="cmp"><div class="empty">Finishes after a baseline run. It names where and why we differ from the paper.</div></div>
+  </section>
+
+  <!-- memory + report -->
+  <section class="panel c5">
+    <div class="ph">Memory</div>
+    <div class="pb">
+      <p class="mini" style="margin-bottom:6px"><b>MEMORY GRAPH</b> what the lab remembers and what it saved</p>
+      <div id="memgraph" style="margin-bottom:12px"></div>
+      <p class="mini" style="margin-bottom:6px"><b>FIX MEMORY</b> error → learned fix</p>
+      <div class="tbl" id="fixes"></div>
+      <p class="mini" style="margin:12px 0 6px"><b>LESSONS</b> recalled before related tasks</p>
+      <div id="lessons"></div>
+    </div>
+  </section>
+
+  <section class="panel c7">
+    <div class="ph">What-ifs and research note
+      <span class="r"><button class="btn alt sm" id="copyMd">Copy markdown</button></span></div>
+    <div class="pb"><div id="whatifs"></div><pre class="md" id="report"></pre></div>
+  </section>
+</main>
+
+<dialog id="phoneDlg">
+  <h3 class="display" style="font-size:1.3rem">Control from a phone</h3>
+  <p class="hint" style="margin:8px 0">Scan to open the approval page. Anything not on localhost needs the token in this link.</p>
+  <img id="qr" alt="QR code for the phone approval page" style="width:240px;max-width:100%;border:3px solid #000;display:block;margin:8px 0">
+  <p class="mini" id="phoneUrl" style="word-break:break-all"></p>
+  <p class="warnbox" id="tunnelWarn" hidden style="margin-top:8px">No tunnel running. This link only works on the same Wi-Fi. Start with <b>./run.sh --tunnel</b> for a public URL.</p>
+  <div class="row" style="margin-top:10px"><button class="btn alt" id="copyUrl">Copy link</button><button class="btn" id="closeDlg">Close</button></div>
+</dialog>
+
+<script>
+const $=s=>document.querySelector(s), esc=s=>String(s??"").replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const TOKEN=new URLSearchParams(location.search).get("token");
+const H=TOKEN?{authorization:"Bearer "+TOKEN}:{};
+const COLORS=["#169b48","#ff5436","#8b6cf0","#ffc21a","#0a7aff","#000000","#e0489e","#00a6a6"];
+const S={agents:[],runs:[],approvals:[],fixes:[],lessons:[],requests:[],metrics:{},hidden:new Set(),lastId:0,selAgent:null,reportReq:null,selRuns:null};
+let ws=null,retry=0,refreshT=null,drawT=null;
+
+async function api(path,opt={}){
+  const r=await fetch(path,{...opt,headers:{"content-type":"application/json",...H,...(opt.headers||{})}});
+  if(!r.ok){let m=r.statusText;try{const d=(await r.json()).detail;m=Array.isArray(d)?d.map(x=>x.msg||JSON.stringify(x)).join("; "):(d||m)}catch(e){}throw new Error(m)}
+  const ct=r.headers.get("content-type")||"";return ct.includes("json")?r.json():r.text();
+}
+const toast=m=>{addFeed("err",m)};
+
+/* ---------------- state ---------------- */
+async function refresh(){
+  try{
+    const st=await api("/api/state");
+    Object.assign(S,{agents:st.agents,runs:st.runs.reverse(),approvals:st.approvals,fixes:st.fixes,lessons:st.lessons,requests:st.requests});
+    S.llm=st.llm;S.llmu=st.llm_usage;S.mobile=st.mobile;
+    if(!S.feedLoaded){st.events.forEach(feedEvent);S.feedLoaded=true;S.lastId=Math.max(S.lastId,st.last_event_id)}
+    renderAll();
+  }catch(e){}
+}
+const scheduleRefresh=()=>{clearTimeout(refreshT);refreshT=setTimeout(refresh,250)};
+
+/* ---------------- websocket (heartbeat + replay) ---------------- */
+function connect(){
+  const proto=location.protocol==="https:"?"wss":"ws";
+  ws=new WebSocket(`${proto}://${location.host}/ws?since=${S.lastId}${TOKEN?"&token="+TOKEN:""}`);
+  ws.onopen=()=>{retry=0;setConn(true)};
+  ws.onclose=()=>{setConn(false);setTimeout(connect,Math.min(5000,500*2**retry++))};
+  ws.onmessage=m=>{
+    const ev=JSON.parse(m.data);
+    if(ev.type==="heartbeat"){$("#hb").textContent="hb "+new Date().toLocaleTimeString();return}
+    if(ev.id)S.lastId=Math.max(S.lastId,ev.id);
+    if(ev.type==="metric"){onMetric(ev);return}
+    feedEvent(ev);
+    if(ev.type==="reset"){S.metrics={};_loaded.clear();S.feedLoaded=true;$("#feed").innerHTML=""}
+    if(ev.type==="repro_compare"||ev.type==="report_ready"||ev.type==="run_done")S.reportReq=null;
+    scheduleRefresh();
+  };
+}
+function setConn(on){const c=$("#conn");c.textContent=on?"live":"reconnecting";c.className="pill "+(on?"on":"off")}
+
+/* ---------------- metrics / chart ---------------- */
+function onMetric(ev){
+  (S.metrics[ev.run_id] ||= []).push({epoch:ev.epoch,train_acc:ev.train_acc,test_acc:ev.test_acc});
+  if(!drawT)drawT=requestAnimationFrame(()=>{drawT=null;drawChart();renderRuns()});
+}
+const _loaded=new Set();
+async function loadMetrics(id){
+  if(_loaded.has(id))return;
+  _loaded.add(id);
+  const got=await api(`/api/runs/${id}/metrics`).catch(()=>[]);if(got.length>=(S.metrics[id]||[]).length)S.metrics[id]=got;
+}
+function chartRuns(){
+  if(S.selRuns)return S.runs.filter(r=>S.selRuns.includes(r.id));
+  const latest=S.requests[0]?.id;
+  return S.runs.filter(r=>r.request_id===latest);
+}
+function grokEpoch(ms){const m=ms.find(m=>m.test_acc>=0.95);return m?m.epoch:null}
+
+/* ---------------- Oracle: forecast from the live curve (heuristic, client-side) ---------------- */
+const logit=p=>Math.log(Math.min(.999,Math.max(.001,p))/(1-Math.min(.999,Math.max(.001,p))));
+function oracle(r,ms){
+  if(ms.length<8)return null;
+  const last=ms[ms.length-1],cap=r.effective?.epochs||0;
+  if(grokEpoch(ms))return{kind:"done",msg:`Grokked at epoch ${grokEpoch(ms)}.`};
+  const w=ms.filter(m=>m.epoch>=last.epoch*0.8);
+  const a=w[0],b=w[w.length-1],de=b.epoch-a.epoch;
+  if(de<=0)return null;
+  const slope=(logit(b.test_acc)-logit(a.test_acc))/de;
+  if(b.test_acc>.6&&slope>1e-4){
+    const eta=Math.round(last.epoch+(logit(.95)-logit(b.test_acc))/slope);
+    return{kind:"rise",eta,msg:`Escaping the plateau. Rough logit extrapolation: 95% near epoch ${eta}.`};
+  }
+  const flat=Math.abs(b.test_acc-a.test_acc)<.03&&b.test_acc<.6;
+  if(flat&&last.epoch>=1500){
+    const left=Math.max(0,cap-last.epoch);
+    return{kind:"stall",msg:`Stuck at ${(b.test_acc*100).toFixed(0)}% with no upward trend since epoch ${Math.round(a.epoch)}. Low odds of grokking within the cap (heuristic: the baseline here plateaued about 800 epochs before escaping). Killing now would save ${left.toLocaleString()} epochs.`};
+  }
+  return{kind:"watch",msg:`Memorised (train ${(last.train_acc*100).toFixed(0)}%, test ${(last.test_acc*100).toFixed(0)}%). Watching for an escape signal.`};
+}
+function drawOracle(){
+  const el=$("#oracle");if(!el)return;
+  const rows=chartRuns().filter(r=>r.status==="running").map(r=>({r,o:oracle(r,S.metrics[r.id]||[])})).filter(x=>x.o);
+  const tone={rise:"#c9f2d4",stall:"#ffd9d2",watch:"#fff3c4",done:"#c9f2d4"};
+  el.innerHTML=rows.length?`<div style="font:700 11px monospace;letter-spacing:.08em">ORACLE · FORECAST FROM THE LIVE CURVE</div>`+rows.map(({r,o})=>`<div style="border:3px solid #000;background:${tone[o.kind]};padding:8px 10px;font-size:13px;display:flex;gap:10px;align-items:center;justify-content:space-between"><span><b>#${r.id} ${esc(r.label)}</b> · ${o.msg}</span>${o.kind==="stall"?`<button data-orkill="${r.id}" style="border:3px solid #000;background:#ff5436;font-weight:700;padding:4px 10px;cursor:pointer">Kill</button>`:""}</div>`).join(""):"";
+}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-orkill]");if(b)api(`/api/runs/${b.dataset.orkill}/kill`,{method:"POST"}).catch(()=>{})});
+function drawChart(){
+  const runs=chartRuns(),W=800,Hh=300,L=44,R=14,T=14,B=34;
+  let maxE=100;runs.forEach(r=>{const ms=S.metrics[r.id]||[];if(ms.length)maxE=Math.max(maxE,ms[ms.length-1].epoch);maxE=Math.max(maxE,(r.effective?.epochs||0))});
+  const X=e=>L+e/maxE*(W-L-R),Y=v=>T+(1-v)*(Hh-T-B);
+  let s="";
+  [0,.25,.5,.75,1].forEach(v=>s+=`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="#000" stroke-opacity="${v%.5?0.08:0.25}"/><text x="${L-6}" y="${Y(v)+4}" font-size="11" text-anchor="end" font-weight="700">${v*100}%</text>`);
+  for(let i=0;i<=4;i++){const e=Math.round(maxE*i/4);s+=`<text x="${X(e)}" y="${Hh-12}" font-size="11" text-anchor="middle" font-weight="700">${e>=1000?(e/1000).toFixed(e%1000?1:0)+"k":e}</text>`}
+  s+=`<line x1="${L}" x2="${W-R}" y1="${Y(.95)}" y2="${Y(.95)}" stroke="#ff5436" stroke-width="2" stroke-dasharray="6 5"/><text x="${W-R}" y="${Y(.95)-4}" font-size="10" text-anchor="end" fill="#ff5436" font-weight="700">95% = grokked</text>`;
+  runs.forEach((r,i)=>{
+    if(S.hidden.has(r.id))return;
+    const ms=S.metrics[r.id]||[];if(!ms.length){if(!_loaded.has(r.id))loadMetrics(r.id).then(()=>drawChart());return}
+    const c=COLORS[i%COLORS.length];
+    const te=ms.map(m=>`${X(m.epoch)},${Y(m.test_acc)}`).join(" "),tr=ms.map(m=>`${X(m.epoch)},${Y(m.train_acc)}`).join(" ");
+    s+=`<polyline points="${tr}" fill="none" stroke="${c}" stroke-width="1.5" stroke-dasharray="3 4" opacity=".6"/>`;
+    s+=`<polyline points="${te}" fill="none" stroke="${c}" stroke-width="3.5" stroke-linejoin="round"/>`;
+    const g=grokEpoch(ms);if(g){const m=ms.find(m=>m.epoch===g);s+=`<circle cx="${X(g)}" cy="${Y(m.test_acc)}" r="6" fill="#ffc21a" stroke="#000" stroke-width="3"/>`}
+    const last=ms[ms.length-1];if(r.status==="running"){const o=oracle(r,ms);if(o&&o.kind==="rise"&&o.eta<maxE*3){const ex=Math.min(o.eta,maxE);s+=`<line x1="${X(last.epoch)}" y1="${Y(last.test_acc)}" x2="${X(ex)}" y2="${Y(.95)}" stroke="${c}" stroke-width="3" stroke-dasharray="2 6" stroke-linecap="round"/><text x="${X(ex)}" y="${Y(.95)+14}" font-size="10" text-anchor="end" font-weight="700" fill="${c}">Oracle ETA ~${o.eta}</text>`}}if(r.status==="running")s+=`<circle cx="${X(last.epoch)}" cy="${Y(last.test_acc)}" r="4" fill="${c}"/>`;
+  });
+  if(!runs.length)s+=`<text x="${W/2}" y="${Hh/2}" text-anchor="middle" font-size="14" font-weight="700">Submit a request to see curves stream in</text>`;
+  $("#chart").innerHTML=s;drawOracle();
+  $("#chartNote").textContent="solid = test accuracy · dashed = train accuracy · yellow dot = grokking";
+  $("#legend").innerHTML=runs.map((r,i)=>{const ms=S.metrics[r.id]||[],l=ms[ms.length-1];
+    return `<span class="lg ${S.hidden.has(r.id)?"off":""}" data-run="${r.id}" tabindex="0"><i style="background:${COLORS[i%COLORS.length]}"></i>#${r.id} ${esc(r.label)}${l?` · ${(l.test_acc*100).toFixed(0)}%`:""}</span>`}).join("");
+}
+$("#legend").addEventListener("click",e=>{const l=e.target.closest(".lg");if(!l)return;const id=+l.dataset.run;S.hidden.has(id)?S.hidden.delete(id):S.hidden.add(id);drawChart()});
+
+/* ---------------- runs table ---------------- */
+function renderRuns(){
+  $("#runs").innerHTML=[...S.runs].reverse().map(r=>{
+    const ms=S.metrics[r.id]||[],l=ms[ms.length-1],res=r.result||{},eff=r.effective||r.requested||{};
+    const g=res.grok_epoch||grokEpoch(ms);
+    const src=r.reused_from?`<span class="st success">memory #${r.reused_from}</span>`:(r.fix_used?`<span class="st insufficient">fix${r.fix_used.from_memory?" recalled":" learned"}</span>`:"");
+    const act=["running","waiting"].includes(r.status);
+    return `<tr class="${(S.selRuns||[]).includes(r.id)?"sel":""}"><td class="n">#${r.id}</td><td><b>${esc(r.label)}</b></td><td><span class="st ${r.status}">${r.status}</span></td><td>${esc(r.agent_id||"–")}</td>
+    <td>${esc(eff.device||"")}</td><td class="n">${l?l.epoch:(res.epochs_run||"–")}/${eff.epochs||"–"}</td><td class="n">${l?(l.test_acc*100).toFixed(1)+"%":(res.final_test_acc!=null?(res.final_test_acc*100).toFixed(1)+"%":"–")}</td>
+    <td>${g?`<b>${g}</b>`:(["success"].includes(r.status)?"no":"–")}</td><td class="n">${r.wall_s?Math.round(r.wall_s)+"s":"–"}</td><td>${src}</td>
+    <td>${r.status==="success"?`<button class="btn sm green" data-rate="1" data-id="${r.id}" ${r.rating===1?"disabled":""}>👍</button> <button class="btn sm red" data-rate="0" data-id="${r.id}" ${r.rating===0?"disabled":""}>👎</button>`:""}</td>
+    <td>${act?`<button class="btn sm red" data-kill="${r.id}">Kill</button>`:`<button class="btn sm alt" data-view="${r.id}">View</button>`}</td></tr>`}).join("")||`<tr><td colspan="12"><div class="empty">No runs yet.</div></td></tr>`;
+}
+$("#runs").addEventListener("click",async e=>{
+  const b=e.target.closest("button");if(!b)return;
+  try{
+    if(b.dataset.kill)await api(`/api/runs/${b.dataset.kill}/kill`,{method:"POST"});
+    if(b.dataset.rate!==undefined)await api(`/api/runs/${b.dataset.id}/rate`,{method:"POST",body:JSON.stringify({rating:+b.dataset.rate})});
+    if(b.dataset.view){const id=+b.dataset.view;S.selRuns=(S.selRuns||[]).includes(id)?null:[id];await loadMetrics(id);drawChart();renderRuns()}
+  }catch(err){toast(err.message)}
+});
+
+/* ---------------- creatures ---------------- */
+const TYPES={psychic:["#8b6cf0","#ddd3ff","Lorecat"],water:["#4aa8ff","#cfe8ff","Plandrop"],steel:["#9aa7ab","#e3e8ea","Cogbot"],normal:["#d9b27c","#f1e0c5","Runnix"],
+  fire:["#ff5436","#ffd6cc","Hastelo"],bug:["#6fbf3a","#d9f2b8","Fixbug"],electric:["#ffc21a","#fff0b0","Voltyst"],grass:["#169b48","#b9f0cb","Sweepsprout"]};
+const NAME_TYPE={PaperReader:"psychic",Planner:"water","CodeRunner-Careful":"steel","CodeRunner-Literal":"normal","CodeRunner-Hasty":"fire",Debugger:"bug",Analyst:"electric",HyperTuner:"grass"};
+const CAP_TYPE={paper_read:"psychic",experiment_plan:"water",whatif_design:"water",cost_estimate:"water",code_execute:"normal",error_debug:"bug",repro_compare:"electric",hyperparam_search:"grass"};
+function typesOf(a){
+  const base=a.name.split("_v")[0],out=[];
+  if(NAME_TYPE[base])out.push(NAME_TYPE[base]);
+  if(!out.length)for(const c of a.capabilities){const t=CAP_TYPE[c];if(t&&!out.includes(t))out.push(t)}
+  if(a.parent2_id){const o=S.agents.find(x=>x.id===a.parent2_id);if(o)for(const t of typesOf(o))if(!out.includes(t))out.push(t)}
+  return out.slice(0,2).length?out.slice(0,2):["normal"];
+}
+function sprite(type,{fainted=false,evolved=false}={}){
+  const [c,soft]=TYPES[type]||TYPES.normal,f=fainted?"#c9d1d3":c,k='stroke="#000" stroke-width="3" stroke-linejoin="round"';
+  const ey={psychic:38,water:40,steel:36,normal:40,fire:40,bug:40,electric:38,grass:40}[type]||40;
+  const eyes=fainted?`<path d="M20 ${ey-4}l8 8M28 ${ey-4}l-8 8M36 ${ey-4}l8 8M44 ${ey-4}l-8 8" stroke="#000" stroke-width="3"/>`
+    :`<circle cx="25" cy="${ey}" r="5" fill="#fff" ${k}/><circle cx="39" cy="${ey}" r="5" fill="#fff" ${k}/><circle cx="26" cy="${ey}" r="2" fill="#000"/><circle cx="40" cy="${ey}" r="2" fill="#000"/>`;
+  const mouth=`<path d="M27 ${ey+10}q5 ${fainted?-3:4} 10 0" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round"/>`;
+  let body="";
+  switch(type){
+    case"psychic":body=`<path d="M24 22L19 8M40 22L45 8" ${k}/><circle cx="19" cy="7" r="3.5" fill="${soft}" ${k}/><circle cx="45" cy="7" r="3.5" fill="${soft}" ${k}/><ellipse cx="32" cy="38" rx="21" ry="19" fill="${f}" ${k}/><path d="M32 22l4 5-4 5-4-5z" fill="${soft}" ${k}/>`;break;
+    case"water":body=`<path d="M12 40l-7 6 9 2M52 40l7 6-9 2" fill="${soft}" ${k}/><path d="M32 6C42 22 53 30 53 42a21 18 0 0 1-42 0C11 30 22 22 32 6z" fill="${f}" ${k}/>`;break;
+    case"steel":body=`<path d="M32 20V9" ${k}/><rect x="28" y="4" width="8" height="7" fill="${soft}" ${k}/><rect x="10" y="20" width="44" height="36" rx="5" fill="${f}" ${k}/><circle cx="16" cy="26" r="2" fill="#000"/><circle cx="48" cy="26" r="2" fill="#000"/><circle cx="16" cy="50" r="2" fill="#000"/><circle cx="48" cy="50" r="2" fill="#000"/>`;break;
+    case"normal":body=`<circle cx="17" cy="20" r="8" fill="${f}" ${k}/><circle cx="47" cy="20" r="8" fill="${f}" ${k}/><ellipse cx="32" cy="38" rx="22" ry="19" fill="${f}" ${k}/><ellipse cx="32" cy="48" rx="9" ry="6" fill="${soft}" stroke="#000" stroke-width="2"/>`;break;
+    case"fire":body=`<path d="M32 4c2 13 17 16 17 34a17 17 0 0 1-34 0c0-9 7-11 9-19 4 4 6-3 8-15z" fill="${f}" ${k}/><path d="M32 30c1 7 8 8 8 15a8 8 0 0 1-16 0c0-5 6-6 8-15z" fill="${soft}" stroke="#000" stroke-width="2"/>`;break;
+    case"bug":body=`<ellipse cx="14" cy="34" rx="9" ry="14" fill="${soft}" ${k}/><ellipse cx="50" cy="34" rx="9" ry="14" fill="${soft}" ${k}/><path d="M26 22c-3-6-7-9-10-10M38 22c3-6 7-9 10-10" fill="none" ${k}/><circle cx="16" cy="12" r="3" fill="#000"/><circle cx="48" cy="12" r="3" fill="#000"/><ellipse cx="32" cy="40" rx="17" ry="18" fill="${f}" ${k}/>`;break;
+    case"electric":body=`<path d="M17 26L10 3l17 14z" fill="${f}" ${k}/><path d="M47 26L54 3 37 17z" fill="${f}" ${k}/><ellipse cx="32" cy="38" rx="21" ry="19" fill="${f}" ${k}/><circle cx="16" cy="46" r="4" fill="#ff5436" stroke="#000" stroke-width="2"/><circle cx="48" cy="46" r="4" fill="#ff5436" stroke="#000" stroke-width="2"/>`;break;
+    case"grass":body=`<path d="M32 22V9" ${k}/><ellipse cx="23" cy="8" rx="9" ry="5" transform="rotate(-25 23 8)" fill="${soft}" ${k}/><ellipse cx="41" cy="8" rx="9" ry="5" transform="rotate(25 41 8)" fill="${soft}" ${k}/><ellipse cx="32" cy="40" rx="21" ry="18" fill="${f}" ${k}/>`;break;
+    default:body=`<ellipse cx="32" cy="38" rx="21" ry="19" fill="${f}" ${k}/>`;
+  }
+  const star=evolved?`<path d="M54 4l2.5 5.5 6 .6-4.5 4 1.4 5.9L54 17l-5.4 3 1.4-5.9-4.5-4 6-.6z" fill="#ffc21a" stroke="#000" stroke-width="2"/>`:"";
+  return `<svg class="sprite" viewBox="0 0 64 64" role="img" aria-label="${type} creature" style="--tint:${soft}">${body}${eyes}${mouth}${star}</svg>`;
+}
+const tbadge=t=>`<span class="tb" style="--tc:${(TYPES[t]||TYPES.normal)[0]};${["steel","fire","grass","psychic","bug","water"].includes(t)?"color:#000":""}">${t}</span>`;
+const hpClass=r=>r<0.3?"low":r<0.6?"mid":"";
+
+/* ---------------- party ---------------- */
+function renderLineage(){
+  const A=[...S.agents].sort((x,y)=>(x.status==="retired")-(y.status==="retired")||y.avg_reward-x.avg_reward);
+  const by=Object.fromEntries(S.agents.map(a=>[a.id,a]));
+  $("#party").innerHTML=A.map(a=>{
+    const ty=typesOf(a),fainted=a.status==="retired",evo=a.version>1,fresh=a.origin==="spawned"&&a.n_tasks<2&&!fainted,fused=a.origin==="merged";
+    const tag=fainted?"":fused?`<span class="tag fused">FUSED</span>`:evo?`<span class="tag evo">EVOLVED v${a.version}</span>`:fresh?`<span class="tag">NEW</span>`:"";
+    const from=[a.parent_id,a.parent2_id].filter(Boolean).map(p=>esc(p)).join(" + ");
+    return `<div class="mon ${fainted?"fainted":""} ${S.selAgent===a.id?"sel":""}" data-agent="${esc(a.id)}" role="button" tabindex="0" aria-label="${esc(a.id)}, level ${a.n_tasks+1}, ${fainted?"fainted":"active"}">
+      ${tag}${sprite(ty[0],{fainted,evolved:evo||fused})}
+      <div><div><span class="nm">${esc(a.id)}</span><span class="lv">Lv ${a.n_tasks+1}</span></div>
+      <div class="types">${ty.map(tbadge).join("")}</div>
+      <div class="hp" title="score ${a.avg_reward.toFixed(2)} (retire line 0.30)"><i class="${hpClass(a.avg_reward)}" style="width:${Math.max(3,Math.round(a.avg_reward*100))}%"></i><u></u></div>
+      <div class="mini">${fainted?"fainted":`score ${a.avg_reward.toFixed(2)}`} · ${a.n_tasks} task${a.n_tasks===1?"":"s"}${from?` · from ${from}`:""}</div></div></div>`}).join("");
+  $("#agCount").textContent=`${S.agents.filter(a=>a.status==="active").length} active · ${S.agents.filter(a=>a.status==="retired").length} fainted`;
+  const opts=S.agents.filter(a=>a.status==="active"&&a.capabilities.includes("code_execute"));
+  const cur=$("#runner").value;$("#runner").innerHTML=`<option value="">UCB1 decides</option>`+opts.map(a=>`<option ${a.id===cur?"selected":""}>${esc(a.id)}</option>`).join("");
+  renderAgentDetail();
+}
+const pickMon=e=>{const g=e.target.closest("[data-agent]");if(g){S.selAgent=g.dataset.agent;renderLineage()}};
+$("#party").addEventListener("click",pickMon);
+$("#party").addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();pickMon(e)}});
+function renderAgentDetail(){
+  const a=S.agents.find(x=>x.id===S.selAgent);if(!a){$("#graphWrap").hidden=true;$("#agentDetail").innerHTML=`<p class="hint">Click a creature for its card. HP is the agent's score; the black tick is the 0.30 retire line. Spawn = catch, retire = faint, refine = evolve, merge = fuse.</p>`;return}
+  const others=S.agents.filter(x=>x.status==="active"&&x.id!==a.id);
+  const ty=typesOf(a);loadGraph(a);
+  $("#agentDetail").innerHTML=`<div class="agent-card"><div class="card-top">${sprite(ty[0],{fainted:a.status==="retired",evolved:a.version>1||a.origin==="merged"})}<div><b>${esc(a.id)}</b> <span class="lv" style="background:#000;color:#fff;font:700 .66rem var(--mono);padding:0 4px">Lv ${a.n_tasks+1}</span><div class="species">${(TYPES[ty[0]]||TYPES.normal)[2]} · ${ty.join("/")}</div><span class="st ${a.status==="active"?"success":""}">${a.status==="retired"?"fainted":a.status}</span> <span class="mini">v${a.version} · ${a.origin}</span></div></div>
+  <p class="mini" style="margin-top:4px">skills: ${a.capabilities.join(", ")}</p><p class="mini">policy: ${esc(JSON.stringify(a.policy))}</p>
+  ${a.retirement_reason?`<p class="mini" style="color:#b00"><b>retired:</b> ${esc(a.retirement_reason)}</p>`:""}
+  <p class="hint" style="margin-top:4px">${esc(a.system_prompt)}</p>
+  ${a.status==="active"?`<div class="row" style="margin-top:6px"><button class="btn sm red" id="retireA">Retire</button>
+  <select class="in" id="mergeWith" style="width:auto;padding:2px"><option value="">Merge with…</option>${others.map(o=>`<option>${esc(o.id)}</option>`).join("")}</select><button class="btn sm" id="mergeBtn">Merge</button></div>`:""}</div>`;
+  const rb=$("#retireA");if(rb)rb.onclick=()=>api(`/api/agents/${encodeURIComponent(a.id)}/retire`,{method:"POST"}).then(refresh).catch(e=>toast(e.message));
+  const mb=$("#mergeBtn");if(mb)mb.onclick=()=>{const w=$("#mergeWith").value;if(w)api("/api/agents/merge",{method:"POST",body:JSON.stringify({a:a.id,b:w})}).then(refresh).catch(e=>toast(e.message))};
+}
+
+
+/* ---------------- per-agent task graph ---------------- */
+const NSTAT={done:"#b9f0cb",warn:"#ddd3ff",failed:"#ffd6cc",killed:"#c9d1d3",running:"#ffc21a",waiting:"#ffffff",fainted:"#c9d1d3"};
+const cut=(t,n)=>t&&t.length>n?t.slice(0,n-1)+"…":(t||"");
+function layoutGraph(g){
+  const N=Object.fromEntries(g.nodes.map(n=>[n.id,n])),out={};g.nodes.forEach(n=>out[n.id]=[]);
+  g.edges.forEach(([a,b])=>{if(out[a])out[a].push(b)});
+  const col={},y={};
+  g.nodes.forEach(n=>{col[n.id]=n.kind==="parent"?0:n.kind==="agent"?1:n.kind==="module"?2:n.kind==="task"?3:null});
+  g.nodes.filter(n=>n.kind==="step"&&g.edges.some(([a,b])=>b===n.id&&a==="agent")).forEach(n=>col[n.id]=2);
+  g.nodes.filter(n=>n.kind==="task").forEach(t=>{let c=4,cur=[t.id];while(cur.length){const nx=[];cur.forEach(i=>out[i].forEach(k=>{if(N[k].kind==="step"&&col[k]==null){col[k]=c;nx.push(k)}}));cur=nx;c++}});
+  let row=0;const mods=g.nodes.filter(n=>n.kind==="module");
+  mods.forEach(m=>{const ts=out[m.id];if(!ts.length){y[m.id]=row++;return}ts.forEach(t=>{y[t]=row++;let c=out[t];while(c.length){c.forEach(k=>y[k]=y[t]);c=c.flatMap(k=>out[k])}});y[m.id]=ts.reduce((s,t)=>s+y[t],0)/ts.length});
+  y.agent=mods.length?mods.reduce((s,m)=>s+y[m.id],0)/mods.length:0;
+  g.nodes.filter(n=>n.kind==="parent").forEach((n,i)=>y[n.id]=y.agent+i);
+  g.nodes.filter(n=>col[n.id]===2&&n.kind==="step").forEach(n=>y[n.id]=row++);
+  const W=168,H=44,GX=36,RH=58,cols=Math.max(...Object.values(col).filter(v=>v!=null))+1;
+  return {W,H,GX,RH,width:cols*(W+GX)+10,height:Math.max(1,row)*RH+16,col,y};
+}
+function drawGraph(g){
+  const L=layoutGraph(g),N=Object.fromEntries(g.nodes.map(n=>[n.id,n])),X=id=>6+L.col[id]*(L.W+L.GX),Y=id=>8+L.y[id]*L.RH;
+  let s=`<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z"/></marker></defs>`;
+  g.edges.forEach(([a,b])=>{if(L.col[a]==null||L.col[b]==null)return;const x1=X(a)+L.W,y1=Y(a)+L.H/2,x2=X(b),y2=Y(b)+L.H/2;
+    s+=`<path d="M${x1},${y1} C${x1+20},${y1} ${x2-20},${y2} ${x2},${y2}" fill="none" stroke="#000" stroke-width="2.5" marker-end="url(#arr)"/>`});
+  g.nodes.forEach(n=>{if(L.col[n.id]==null)return;const fill=n.kind==="module"?"#ffe9a8":n.kind==="parent"?"#ddd3ff":(NSTAT[n.status]||"#fff"),sw=n.kind==="agent"?"stroke-width:5":"";
+    s+=`<g class="nd ${n.status}" transform="translate(${X(n.id)},${Y(n.id)})"><title>${esc(n.label)} ${esc(n.sub)} (${n.status})</title>
+    <rect width="${L.W}" height="${L.H}" fill="${fill}" style="${sw}" ${n.kind==="module"?'stroke-dasharray="6 3"':""}/>
+    <text x="7" y="17" font-size="11" font-weight="800">${esc(cut(n.label,n.kind==="step"?26:24))}</text>
+    <text x="7" y="32" class="sub">${esc(cut(n.sub,32))}</text></g>`});
+  const svg=$("#taskgraph");svg.removeAttribute("height");svg.setAttribute("width","100%");svg.style.maxWidth=L.width+"px";svg.setAttribute("viewBox",`0 0 ${L.width} ${L.height}`);svg.innerHTML=s;
+  $("#graphTitle").textContent=`Task graph · ${g.agent}`;
+  const live=g.nodes.filter(n=>n.status==="running").length;
+  $("#graphNote").textContent=`${g.nodes.length} nodes${live?` · ${live} running now`:""}`;
+}
+async function loadGraph(a){
+  const key=a.id+":"+S.lastId+":"+a.n_tasks;
+  if(S.graphKey===key)return;S.graphKey=key;
+  try{const g=await api(`/api/agents/${encodeURIComponent(a.id)}/graph`);if(S.selAgent===a.id){$("#graphWrap").hidden=false;drawGraph(g)}}catch(e){S.graphKey=null}
+}
+
+/* ---------------- approvals ---------------- */
+function renderApprovals(){
+  const pend=S.approvals.filter(a=>a.status==="pending");
+  $("#apprCount").textContent=pend.length?`${pend.length} pending`:"";
+  $("#approvals").innerHTML=pend.length?pend.map(a=>`<div class="appr"><b>Spawn ${esc(a.payload.name)}?</b><span class="mini">needs skill: ${esc(a.payload.capability)}</span><span class="hint">${esc(a.payload.reason)}</span>
+    <div class="row"><button class="btn green" data-appr="${a.id}" data-yes="1">Approve</button><button class="btn red" data-appr="${a.id}" data-yes="0">Reject</button></div></div>`).join("")
+    :`<div class="empty">Nothing waiting. When the lab needs a skill nobody has, it asks here (and on your phone).</div>`;
+}
+$("#approvals").addEventListener("click",e=>{const b=e.target.closest("[data-appr]");if(!b)return;
+  api(`/api/approvals/${b.dataset.appr}/decide`,{method:"POST",body:JSON.stringify({approve:b.dataset.yes==="1"})}).then(refresh).catch(err=>toast(err.message))});
+
+/* ---------------- feed ---------------- */
+const fmtT=ts=>new Date(ts*1000).toLocaleTimeString([], {hour12:false});
+function addFeed(cls,html,ts){const f=$("#feed"),d=document.createElement("div");d.className="e";d.innerHTML=`<span class="t">${fmtT(ts||Date.now()/1000)}</span><span class="${cls}">${html}</span>`;f.appendChild(d);while(f.children.length>400)f.removeChild(f.firstChild);f.scrollTop=f.scrollHeight}
+function feedEvent(e){
+  const t=e.type,r=n=>`<b>#${n}</b>`;
+  switch(t){
+    case"request":return addFeed("sys",`> request ${r(e.request_id)}: ${esc(e.text)}`,e.ts);
+    case"plan":return addFeed("why",`controller: needs ${e.capabilities.map(esc).join(", ")}<br>why: ${e.why.map(esc).join("; ")} · axes: ${e.axes.join(", ")}`,e.ts);
+    case"lesson_recalled":return addFeed("dim",`recalled lesson: ${esc(e.text)}`,e.ts);
+    case"paper":return addFeed("dim",`paper_read (${esc(e.agent)}): ${esc(e.title)} · claim ${e.claim.grok_epoch?"grok ≈ "+e.claim.grok_epoch:"qualitative"}${e.claim.verified?"":" [unverified]"}`,e.ts);
+    case"variants":return addFeed("why",`what-if design: ${e.variants.map(v=>esc(v.label)).join(", ")||"(none)"} · sweep by ${esc(e.by||"nobody (no hyperparam_search agent)")}`,e.ts);
+    case"ucb_select":{const rows=e.table.map(x=>`<tr class="${x.id===e.chosen?"ch":""}"><td>${esc(x.id)}</td><td>${x.mean}</td><td>${x.n}</td><td>${x.bonus??"∞"}</td><td>${x.ucb??"∞"}</td></tr>`).join("");
+      return addFeed("why",`<details><summary>UCB1 ${esc(e.capability)} → <b>${esc(e.chosen)}</b> ▸ table</summary><table class="ucb"><tr><th>agent</th><th>mean</th><th>n</th><th>bonus</th><th>ucb</th></tr>${rows}</table></details>`,e.ts)}
+    case"runner_pinned":return addFeed("sys",`researcher pinned runner ${esc(e.agent)}`,e.ts);
+    case"run_queued":return addFeed("dim",`run ${r(e.run_id)} [${esc(e.label)}] → ${esc(e.agent)} · ${esc(e.config.device)} · ${e.config.epochs} epochs · hash ${e.hash}`,e.ts);
+    case"optim_logged":return addFeed("dim",`run ${r(e.run_id)} optimizer: ${esc(e.text)}`,e.ts);
+    case"run_error":return addFeed("err",`run ${r(e.run_id)} error: ${esc(e.signature)}`,e.ts);
+    case"fix_recalled":return addFeed("hit",`⟲ ${esc(e.message)}`,e.ts);
+    case"fix_proposed":return addFeed("sys",`debugger (${esc(e.agent)}) proposes ${esc(JSON.stringify(e.patch))}: ${esc(e.description||"")}`,e.ts);
+    case"fix_saved":return addFeed("hit",`fix saved to memory: ${esc(e.signature)} → ${esc(JSON.stringify(e.patch))}`,e.ts);
+    case"memory_hit":return addFeed("hit",`★ ${esc(e.message)} [${esc(e.label)}]`,e.ts);
+    case"run_done":return addFeed(e.status==="success"?"hit":"err",`run ${r(e.run_id)} [${esc(e.label)}] ${e.status} · ${esc(e.agent)} reward ${e.reward} · ${e.result.grok_epoch?"grokked @"+e.result.grok_epoch:"no grok"}`,e.ts);
+    case"run_failed":case"run_killed":return addFeed("err",`run ${r(e.run_id)} ${t==="run_killed"?"killed":"failed"} ${esc(e.error||"")}`,e.ts);
+    case"agent_spawned":return addFeed("sys",`✦ a wild ${esc(e.agent)} appeared and joined the party (${e.origin}) score ${e.score}`,e.ts);
+    case"agent_retired":return addFeed("err",`✕ ${esc(e.agent)} fainted: ${esc(e.reason)}`,e.ts);
+    case"agent_refined":return addFeed("sys",`★ ${esc(e.old)} evolved into ${esc(e.new)} ${esc(JSON.stringify(e.policy))}`,e.ts);
+    case"agent_merged":return addFeed("sys",`⊕ ${esc(e.a)} + ${esc(e.b)} fused into ${esc(e.new)}`,e.ts);
+    case"agent_score":return;
+    case"approval_requested":return addFeed("sys",`⏸ waiting for approval: spawn ${esc(e.name)} (${esc(e.capability)})`,e.ts);
+    case"approval_decided":return addFeed(e.status==="approved"?"hit":"err",`approval ${e.status} via ${esc(e.via)}`,e.ts);
+    case"repro_compare":return addFeed("hit",`ReproComparator: ${esc(e.summary)}`,e.ts);
+    case"whatif_result":return addFeed("hit",`what-if "${esc(e.label)}": ${esc(e.outcome)}`,e.ts);
+    case"report_ready":return addFeed("sys",`research note ready for request ${r(e.request_id)}`,e.ts);
+    case"rated":return addFeed("sys",`researcher rated run ${r(e.run_id)} ${e.rating===1?"👍":e.rating===0?"👎":"😐"} → scores updated`,e.ts);
+    case"degraded":case"config_rejected":case"request_error":return addFeed("err",esc(e.message||e.error),e.ts);
+    case"reset":return addFeed("sys","lab reset",e.ts);
+    case"recovered":return addFeed("err",`restart recovery: closed ${e.runs} interrupted run(s), ${e.requests} request(s), ${e.approvals} pending approval(s)`,e.ts);
+  }
+}
+
+/* ---------------- compare / memory / report ---------------- */
+function renderCompare(){
+  const done=S.requests.find(r=>(r.findings||[]).some(f=>f.kind==="repro"));
+  if(!done){return}
+  const f=done.findings.find(x=>x.kind==="repro"),rep=f.paper_reports,o=f.we_observed;
+  $("#cmpTag").textContent=f.qualitative_match+" match";
+  $("#cmp").innerHTML=`${f.claim_verified?"":`<div class="warnbox">PAPER CLAIM UNVERIFIED · ${esc(f.claim_note||"")}</div>`}
+  <div class="cmpgrid"><div><div class="l">Paper reports</div><div class="big">${rep.grok_epoch?"~"+rep.grok_epoch:"n/a"}</div><div class="mini">grok epoch</div></div>
+  <div style="background:var(--leaf-soft)"><div class="l">We observed</div><div class="big">${o.grok_epoch||"none"}</div><div class="mini">${o.grok_epoch?"grok epoch":"by epoch "+o.last_epoch}</div></div>
+  <div><div class="l">Memorised at</div><div class="big">${o.memorise_epoch||"–"}</div><div class="mini">plateau ${o.plateau_test_acc!=null?(o.plateau_test_acc*100).toFixed(0)+"% test":"–"}</div></div></div>
+  ${f.plain?`<p style="margin-bottom:8px">${esc(f.plain)}</p>`:""}
+  <div class="mini" style="margin-bottom:4px"><b>LIKELY CAUSES</b> (strongest first)</div>
+  ${f.likely_causes.map(c=>`<div class="cause"><span class="k ${c.strength}">${c.strength}</span><span><b>${esc(c.cause)}</b>: ${esc(c.evidence)}</span></div>`).join("")}`;
+}
+
+function renderMemGraph(){
+  const el=$("#memgraph");if(!el)return;
+  const runs=S.runs.filter(r=>r.status==="success").slice(-12).reverse().reverse();
+  const byId=Object.fromEntries(S.runs.map(r=>[r.id,r]));
+  const reused=S.runs.filter(r=>r.reused_from);
+  const saved=reused.reduce((a,r)=>a+((byId[r.reused_from]||{}).wall_s||0),0);
+  if(!runs.length&&!S.fixes.length&&!S.lessons.length){el.innerHTML=`<div class="empty">Nothing remembered yet. Press Run: every finished run, fix and lesson becomes a node here.</div>`;return}
+  const W=520,rowH=26,n=Math.max(runs.length,S.fixes.length,S.lessons.length,1),H=40+n*rowH;
+  const pos={},col=(items,x,key)=>items.forEach((it,i)=>pos[key+it.k]={x,y:34+i*rowH});
+  const R=runs.map(r=>({k:r.id,r})),F=S.fixes.map(f=>({k:f.error_signature,f})),L=S.lessons.slice(-12).map((l,i)=>({k:l.id??i,l}));
+  col(R,70,"r");col(F,270,"f");col(L,450,"l");
+  let g=`<text x="70" y="14" font-size="10" font-weight="700" text-anchor="middle">RUNS (${runs.length})</text><text x="270" y="14" font-size="10" font-weight="700" text-anchor="middle">FIXES (${S.fixes.length})</text><text x="450" y="14" font-size="10" font-weight="700" text-anchor="middle">LESSONS (${S.lessons.length})</text>`;
+  reused.slice(-12).forEach(r=>{const a=pos["r"+r.reused_from],b=pos["r"+r.id];if(a&&b)g+=`<path d="M${a.x-30},${a.y} C${a.x-70},${a.y} ${b.x-70},${b.y} ${b.x-30},${b.y}" fill="none" stroke="#17a34a" stroke-width="2.5" stroke-dasharray="4 3"><title>run #${r.id} reused result of run #${r.reused_from}</title></path>`});
+  F.forEach(({f})=>{const a=pos["f"+f.error_signature],b=pos["r"+f.run_id];if(a&&b)g+=`<line x1="${b.x+30}" y1="${b.y}" x2="${a.x-14}" y2="${a.y}" stroke="#000" stroke-width="2"/>`});
+  L.forEach(({l,k})=>{const a=pos["l"+k],b=pos["r"+l.run_id];if(a&&b)g+=`<line x1="${b.x+30}" y1="${b.y}" x2="${a.x-14}" y2="${a.y}" stroke="#000" stroke-opacity=".35" stroke-width="1.5"/>`});
+  R.forEach(({r})=>{const p=pos["r"+r.id],isR=!!r.reused_from;g+=`<g><rect x="${p.x-30}" y="${p.y-10}" width="60" height="20" fill="${isR?"#c9f2d4":"#ffc21a"}" stroke="#000" stroke-width="2.5"/><text x="${p.x}" y="${p.y+4}" font-size="10" font-weight="700" text-anchor="middle">#${r.id}${isR?" reuse":""}</text><title>${esc(r.label)} ${isR?"(reused from #"+r.reused_from+")":""}</title></g>`});
+  F.forEach(({f})=>{const p=pos["f"+f.error_signature];g+=`<g><circle cx="${p.x}" cy="${p.y}" r="12" fill="#ff5436" stroke="#000" stroke-width="2.5"/><text x="${p.x}" y="${p.y+4}" font-size="10" font-weight="700" text-anchor="middle">×${f.success_count}</text><title>${esc(f.error_signature)} -> ${esc(JSON.stringify(f.fix.patch))}</title></g>`});
+  L.forEach(({l,k})=>{const p=pos["l"+k];g+=`<g><circle cx="${p.x}" cy="${p.y}" r="10" fill="#b7a6ff" stroke="#000" stroke-width="2.5"/><title>${esc(l.text)}</title></g><text x="${p.x+16}" y="${p.y+4}" font-size="9">${esc((l.text||"").slice(0,22))}…</text>`});
+  el.innerHTML=`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px"><span class="pill on">${reused.length} runs reused</span><span class="pill on">${saved.toFixed(0)} s compute saved</span><span class="pill">${S.fixes.length} fixes learned</span></div><svg viewBox="0 0 ${W} ${H}" style="width:100%;border:3px solid #000;background:#fff">${g}</svg><div class="mini" style="margin-top:4px">yellow = real run · green dashed = reused an earlier run · red = learned fix (×times used) · purple = lesson. Hover a node for details.</div>`;
+}
+function renderMemory(){renderMemGraph();renderMemory2()}
+function renderMemory2(){
+  $("#fixes").innerHTML=S.fixes.length?`<table><tr><th>error signature</th><th>fix</th><th class="n">used</th><th>from</th></tr>${S.fixes.map(f=>`<tr><td style="white-space:normal;max-width:240px">${esc(f.error_signature)}</td><td>${esc(JSON.stringify(f.fix.patch))}</td><td class="n">×${f.success_count}</td><td>run #${f.run_id}</td></tr>`).join("")}</table>`:`<div class="empty">No fixes learned yet.</div>`;
+  $("#lessons").innerHTML=S.lessons.length?S.lessons.map(l=>`<p class="mini" style="border-bottom:2px dashed #000;padding:4px 0">${esc(l.text)}</p>`).join(""):`<div class="empty">No lessons yet. They are written after each analysed request.</div>`;
+}
+async function renderReport(){
+  const done=S.requests.find(r=>r.status==="done");
+  if(!done){$("#whatifs").innerHTML="";$("#report").textContent="No finished request yet.";return}
+  if(S.reportReq===done.id+":"+S.runs.length)return;S.reportReq=done.id+":"+S.runs.length;
+  $("#whatifs").innerHTML=(done.findings||[]).filter(f=>f.kind==="whatif").map(f=>`<div class="cause" style="grid-template-columns:minmax(0,1fr)"><span><b>${esc(f.question)}</b><br>${esc(f.outcome)}</span></div>`).join("");
+  $("#report").textContent=await api(`/api/requests/${done.id}/report`).catch(()=>"");
+}
+$("#copyMd").onclick=()=>navigator.clipboard?.writeText($("#report").textContent).catch(()=>{});
+
+function renderAll(){
+  const u=S.llmu;$("#llm").textContent=S.llm?(u&&u.configured?`LLM ${Math.round(u.used/1000)}k/${Math.round(u.cap/1000)}k tok`:"LLM on (replay)"):(u&&u.disabled?"LLM off: "+u.disabled:"rule-based");$("#llm").className="pill "+(S.llm?"on":"warn");
+  renderApprovals();renderLineage();renderRuns();renderCompare();renderMemory();renderReport();drawChart();
+}
+
+/* ---------------- actions ---------------- */
+$("#go").onclick=async()=>{
+  const text=$("#reqText").value.trim();if(!text)return;
+  const body={text,preset:$("#preset").value,runner:$("#runner").value||null};
+  if($("#epochs").value)body.epochs=+$("#epochs").value;if($("#seed").value)body.seed=+$("#seed").value;
+  $("#go").disabled=true;try{S.selRuns=null;await api("/api/requests",{method:"POST",body:JSON.stringify(body)})}catch(e){toast(e.message)}finally{setTimeout(()=>$("#go").disabled=false,600)}
+  scheduleRefresh();
+};
+$("#resetBtn").onclick=()=>{if($("#resetBtn").dataset.arm){api("/api/reset",{method:"POST"}).then(()=>{S.metrics={};_loaded.clear();S.reportReq=null;refresh()});$("#resetBtn").textContent="Reset lab";delete $("#resetBtn").dataset.arm}else{$("#resetBtn").dataset.arm=1;$("#resetBtn").textContent="Click again to wipe";setTimeout(()=>{$("#resetBtn").textContent="Reset lab";delete $("#resetBtn").dataset.arm},3000)}};
+$("#phoneBtn").onclick=async()=>{
+  const dlg=$("#phoneDlg");$("#qr").src="/api/qr.svg"+(TOKEN?"?token="+TOKEN:"");
+  const u=S.mobile?.url||"";$("#phoneUrl").textContent=u+" (token in QR)";$("#tunnelWarn").hidden=!!S.mobile?.tunnel;dlg.showModal();
+};
+$("#closeDlg").onclick=()=>$("#phoneDlg").close();
+$("#copyUrl").onclick=()=>navigator.clipboard?.writeText(S.mobile?.url||"").catch(()=>{});
+
+refresh().then(()=>{connect();setInterval(refresh,15000)});
+</script>
+</body>
+</html>
